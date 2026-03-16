@@ -303,7 +303,9 @@ Then build a name list from filenames (strip `.mp4`) and pass it to a custom exp
 
 If the user removed clips in Resolve (fewer timeline clips than manifest entries), use `--auto-name` instead of a manifest to detect names from the subtitle track — but only if the subtitle track accurately reflects every clip.
 
-The output directory is typically: `C:\Users\smars\OneDrive\Pictures\Movies & TV\<ProjectName>\`
+The output directory is typically:
+- Movies: `C:\Users\smars\OneDrive\Pictures\Movies & TV\<Title>\`
+- TV shows: `C:\Users\smars\OneDrive\Pictures\Movies & TV\<Show Name>\<Season>\` (e.g. `One Piece (Netflix)\S2\`)
 
 ### Decision Gate
 
