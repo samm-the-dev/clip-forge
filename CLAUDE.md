@@ -4,8 +4,8 @@ Video clip extraction pipeline: Keep notes → ffmpeg cuts → DaVinci Resolve �
 
 Use `/clip-forge <project-name>` to run the full guided pipeline.
 
-@toolbox/ai-context/AGENTS.md
-@toolbox/ai-context/python-reference.md
+@.toolbox/ai-context/CLAUDE.md
+@.toolbox/ai-context/python-reference.md
 
 ## Completed Projects
 
