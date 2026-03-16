@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clip Forge</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Outfit:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg-deep: #0a0a0c;
+    --bg-panel: #111114;
+    --bg-surface: #1a1a1f;
+    --bg-elevated: #222228;
+    --border: #2a2a32;
+    --border-subtle: #1e1e24;
+    --text-primary: #e8e8ed;
+    --text-secondary: #8888a0;
+    --text-dim: #555566;
+    --red: #e83b3b;
+    --red-glow: #e83b3b40;
+    --red-dim: #4a1515;
+    --green: #34d399;
+    --green-glow: #34d39940;
+    --amber: #f59e0b;
+    --amber-glow: #f59e0b30;
+    --blue: #60a5fa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ── Layout ─────────────────────────────── */
+
+  .shell {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    gap: 16px;
+  }
+
+  /* ── Header ─────────────────────────────── */
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .connection-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .connection-dot.connected {
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green-glow);
+  }
+
+  .connection-dot.disconnected {
+    background: var(--red);
+    box-shadow: 0 0 8px var(--red-glow);
+  }
+
+  .property-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+  }
+
+  /* ── Main Area ──────────────────────────── */
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: hidden;
+  }
+
+  /* ── Record Button ──────────────────────── */
+
+  .record-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 28px 0 20px;
+  }
+
+  .record-btn {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    border: 3px solid var(--border);
+    background: var(--bg-surface);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+  }
+
+  .record-btn:hover {
+    border-color: var(--red);
+    background: var(--red-dim);
+  }
+
+  .record-btn:active {
+    transform: scale(0.95);
+  }
+
+  .record-btn .inner {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--red);
+    transition: all 0.25s ease;
+  }
+
+  .record-btn.recording {
+    border-color: var(--red);
+    box-shadow: 0 0 24px var(--red-glow), 0 0 60px var(--red-glow);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+
+  .record-btn.recording .inner {
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    background: var(--red);
+  }
+
+  @keyframes pulse-ring {
+    0%, 100% { box-shadow: 0 0 24px var(--red-glow), 0 0 60px transparent; }
+    50% { box-shadow: 0 0 32px var(--red-glow), 0 0 80px var(--red-glow); }
+  }
+
+  .record-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+  }
+
+  .timer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 300;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+    transition: color 0.3s;
+  }
+
+  .timer.active {
+    color: var(--red);
+  }
+
+  /* ── Episode Bar ────────────────────────── */
+
+  .episode-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+  }
+
+  .episode-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .episode-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    flex: 1;
+  }
+
+  .episode-value.unset {
+    color: var(--text-dim);
+    font-weight: 400;
+    font-style: italic;
+  }
+
+  .ep-btn {
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .ep-btn:hover {
+    background: var(--border);
+    color: var(--text-primary);
+  }
+
+  /* ── Clip List ──────────────────────────── */
+
+  .clip-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .clip-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2px;
+  }
+
+  .clip-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  .clip-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .clip-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+
+  .clip-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 20px;
+  }
+
+  .clip-ep {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--blue);
+    background: #60a5fa12;
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+
+  .clip-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: auto;
+  }
+
+  .empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80px;
+    color: var(--text-dim);
+    font-size: 13px;
+    font-style: italic;
+  }
+
+  /* ── Footer ─────────────────────────────── */
+
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  .hotkeys {
+    display: flex;
+    gap: 16px;
+  }
+
+  .hotkey {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .hotkey kbd {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 5px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text-secondary);
+  }
+
+  .done-btn {
+    padding: 7px 18px;
+    font-size: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .done-btn:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--text-dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <span class="logo">Clip Forge</span>
+      <div class="connection-dot" id="connDot"></div>
+    </div>
+    <span class="property-label" id="propertyName">—</span>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Record -->
+    <div class="record-zone">
+      <button class="record-btn" id="recordBtn" onclick="toggleRecord()">
+        <div class="inner"></div>
+      </button>
+      <div class="timer" id="timer">00:00</div>
+      <div class="record-label" id="recordLabel">NUM 1 — RECORD</div>
+    </div>
+
+    <!-- Episode -->
+    <div class="episode-bar">
+      <span class="episode-label">Episode</span>
+      <span class="episode-value" id="episodeValue">—</span>
+      <button class="ep-btn" onclick="advanceEpisode()">Next ›</button>
+    </div>
+
+    <!-- Clips -->
+    <div class="clip-section">
+      <div class="clip-header">
+        <span class="clip-count" id="clipCount">0 clips</span>
+      </div>
+      <div class="clip-list" id="clipList">
+        <div class="empty-state">No clips yet</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="hotkeys">
+      <div class="hotkey"><kbd>Num1</kbd> Rec</div>
+      <div class="hotkey"><kbd>Num2</kbd> Next ep</div>
+      <div class="hotkey"><kbd>Num3</kbd> Done</div>
+    </div>
+    <button class="done-btn" id="doneBtn" onclick="endSession()">End Session</button>
+  </div>
+
+</div>
+
+<script>
+  const API = window.location.origin + '/api';
+
+  let isRecording = false;
+  let timerInterval = null;
+  let timerStart = null;
+
+  // ── Polling ──────────────────────────────
+
+  async function poll() {
+    try {
+      const res = await fetch(`${API}/status`);
+      const data = await res.json();
+
+      // Connection
+      const dot = document.getElementById('connDot');
+      dot.className = 'connection-dot ' + (data.obs_connected ? 'connected' : 'disconnected');
+
+      // Property
+      document.getElementById('propertyName').textContent = data.property_name || '—';
+
+      // Episode
+      const epEl = document.getElementById('episodeValue');
+      if (data.current_episode) {
+        epEl.textContent = data.current_episode;
+        epEl.classList.remove('unset');
+      } else {
+        epEl.textContent = 'Not set';
+        epEl.classList.add('unset');
+      }
+
+      // Recording state sync
+      const wasRecording = isRecording;
+      isRecording = data.recording?.is_recording || false;
+
+      const btn = document.getElementById('recordBtn');
+      const timer = document.getElementById('timer');
+      const label = document.getElementById('recordLabel');
+
+      if (isRecording) {
+        btn.classList.add('recording');
+        timer.classList.add('active');
+        label.textContent = 'NUM 1 — STOP';
+        if (!wasRecording) startTimer();
+      } else {
+        btn.classList.remove('recording');
+        timer.classList.remove('active');
+        label.textContent = 'NUM 1 — RECORD';
+        if (wasRecording) stopTimer();
+      }
+
+      // Clips
+      renderClips(data.clips || []);
+
+    } catch (e) {
+      document.getElementById('connDot').className = 'connection-dot disconnected';
+    }
+  }
+
+  // ── Actions ──────────────────────────────
+
+  async function toggleRecord() {
+    if (isRecording) {
+      await fetch(`${API}/stop`, { method: 'POST' });
+    } else {
+      await fetch(`${API}/capture`, { method: 'POST' });
+    }
+    setTimeout(poll, 200);
+  }
+
+  async function advanceEpisode() {
+    await fetch(`${API}/episode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    setTimeout(poll, 100);
+  }
+
+  async function endSession() {
+    if (!confirm('End session and finalize clips?')) return;
+    await fetch(`${API}/done`, { method: 'POST' });
+    document.querySelector('.shell').style.opacity = '0.4';
+    document.getElementById('recordLabel').textContent = 'SESSION ENDED';
+  }
+
+  // ── Timer ────────────────────────────────
+
+  function startTimer() {
+    timerStart = Date.now();
+    timerInterval = setInterval(updateTimer, 100);
+  }
+
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null;
+    document.getElementById('timer').textContent = '00:00';
+  }
+
+  function updateTimer() {
+    if (!timerStart) return;
+    const elapsed = Math.floor((Date.now() - timerStart) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timer').textContent = `${m}:${s}`;
+  }
+
+  // ── Clip list ────────────────────────────
+
+  function renderClips(clips) {
+    const list = document.getElementById('clipList');
+    const count = document.getElementById('clipCount');
+
+    count.textContent = `${clips.length} clip${clips.length !== 1 ? 's' : ''}`;
+
+    if (clips.length === 0) {
+      list.innerHTML = '<div class="empty-state">No clips yet</div>';
+      return;
+    }
+
+    list.innerHTML = clips.map(c => {
+      const time = new Date(c.captured_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const epTag = c.episode ? `<span class="clip-ep">${c.episode}</span>` : '';
+      return `
+        <div class="clip-item">
+          <span class="clip-num">#${c.clip_number}</span>
+          ${epTag}
+          <span class="clip-time">${time}</span>
+        </div>
+      `;
+    }).reverse().join('');
+
+    // Auto-scroll to top (newest)
+    list.scrollTop = 0;
+  }
+
+  // ── Keyboard ─────────────────────────────
+
+  document.addEventListener('keydown', (e) => {
+    // Numpad 1 or regular 1: toggle record
+    if (e.code === 'Numpad1' || (e.code === 'Digit1' && !e.ctrlKey && !e.altKey)) {
+      e.preventDefault();
+      toggleRecord();
+    }
+    // Numpad 2 or regular 2: next episode
+    if (e.code === 'Numpad2' || (e.code === 'Digit2' && !e.ctrlKey && !e.altKey)) {
+      e.preventDefault();
+      advanceEpisode();
+    }
+    // Numpad 3 or regular 3: end session
+    if (e.code === 'Numpad3' || (e.code === 'Digit3' && !e.ctrlKey && !e.altKey)) {
+      e.preventDefault();
+      endSession();
+    }
+  });
+
+  // ── Init ─────────────────────────────────
+
+  poll();
+  setInterval(poll, 1500);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+{
+  "media_paths": {
+    "movies": "D:/Movies",
+    "shows": "D:/TV Shows"
+  },
+  "output_dir": "D:/ClipForge",
+  "ffmpeg_path": "ffmpeg",
+  "padding_seconds": 3,
+  "default_fps": 15,
+  "default_width": 480,
+
+  "obs": {
+    "host": "localhost",
+    "port": 4455,
+    "password": ""
+  },
+
+  "subtitles": {
+    "base_track_name": "YOUR_BASE_SUBTITLE_TRACK_NAME_HERE",
+    "default_style": {
+      "font_family": "Arial",
+      "font_color": "#FFFFFF",
+      "outline_color": "#000000"
+    },
+    "property_styles": {
+      "Severance": {
+        "font_family": "Helvetica Neue",
+        "font_color": "#E0E0E0",
+        "outline_color": "#1A1A2E"
+      }
+    }
+  }
+}
