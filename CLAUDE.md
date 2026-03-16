@@ -4,6 +4,9 @@ Video clip extraction pipeline: Keep notes → ffmpeg cuts → DaVinci Resolve �
 
 Use `/clip-forge <project-name>` to run the full guided pipeline.
 
+@toolbox/ai-context/AGENTS.md
+@toolbox/ai-context/python-reference.md
+
 ## Completed Projects
 
 - **One Piece S1** — 18 clips, TV show workflow
