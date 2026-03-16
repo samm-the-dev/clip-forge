@@ -159,16 +159,24 @@ def resolve_export(
     for job in project.GetRenderJobList():
         project.DeleteRenderJob(job["JobId"])
 
+    # Group clips by name — merges split clips (same source file) into one job
+    from collections import OrderedDict
+    name_groups = OrderedDict()
+    for clip, name in zip(clips, names):
+        if name not in name_groups:
+            name_groups[name] = []
+        name_groups[name].append(clip)
+
     # Queue render jobs
     os.makedirs(output_dir, exist_ok=True)
     queued = []
 
-    for clip, name in zip(clips, names):
+    for name, group_clips in name_groups.items():
         if clip_filter and name not in clip_filter:
             continue
 
-        start_frame = clip.GetStart()
-        end_frame = clip.GetEnd()
+        start_frame = min(c.GetStart() for c in group_clips)
+        end_frame = max(c.GetEnd() for c in group_clips)
         frame_count = end_frame - start_frame
 
         settings = {
