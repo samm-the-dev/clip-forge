@@ -1,0 +1,43 @@
+# Example caller workflow — drop this into consumer repos at
+# .github/workflows/claude.yml to use the shared reusable workflow
+# from toolbox. Adjust 'mode' or remove triggers you don't need.
+#
+# Note: pull_request events from forks do NOT have access to repo secrets,
+# so adversarial review won't run on fork PRs. Use pull_request_target if
+# you need that, but be aware of the security implications (the target
+# branch code runs with secret access, not the PR branch).
+
+name: Claude Code
+
+on:
+  # On-demand: @claude mentions
+  issue_comment:
+    types: [created, edited]
+  pull_request_review_comment:
+    types: [created, edited]
+  issues:
+    types: [opened, assigned]
+
+  # Adversarial review: non-draft PR open/update
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  # Copilot response: when Copilot submits a review
+  pull_request_review:
+    types: [submitted]
+
+# Required by claude-code-action@beta for OIDC token + write access.
+# The repo default is often read-only; omitting this causes startup_failure.
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write
+
+jobs:
+  claude:
+    uses: samm-the-dev/toolbox/.github/workflows/claude.yml@main
+    with:
+      mode: "all"
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
